@@ -2,25 +2,61 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
+///////////////////////////////////////////////////
 // renders one square
-class Square extends React.Component {
+class Square0 extends React.Component {
+
   render() {
     return (
-      <button className="square">
-        {this.props.value}
+      <button
+        className="square"
+        onClick={() => this.props.onClick()}>
+      {this.props.value}
       </button>
     );
   }
 }
 
+
+function Square(props) {
+  return (
+    <button className="square" onClick={props.onClick}>
+      {props.value}
+    </button>
+  );
+}
+
+///////////////////////////////////////////////////
 // renders 9 Squares
 class Board extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      squares: Array(9).fill(null),
+      currentToken: 'X',
+    };
+
+  }
+
+  handleClick(i) {
+    console.log("hi");
+    const squares = this.state.squares.slice();
+    squares[i] = this.state.currentToken;
+
+    const token = this.state.currentToken === 'X' ? 'O' : 'X';
+    this.setState({currentToken: token, squares: squares});
+  }
+
   renderSquare(i) {
-    return <Square value={i}/>;
+    return <Square
+      value={this.state.squares[i]}
+      onClick={() => this.handleClick(i)}
+    />;
   }
 
   render() {
-    const status = 'Next player: X';
+    const status = 'Next player: ' + this.state.currentToken;
 
     return (
       <div>
@@ -43,8 +79,13 @@ class Board extends React.Component {
       </div>
     );
   }
+
 }
 
+
+
+
+///////////////////////////////////////////////////
 // renders Board and placeholder stuff
 class Game extends React.Component {
   render() {
@@ -64,6 +105,8 @@ class Game extends React.Component {
 
 // ========================================
 
+//
+///////////////////////////////////////////////////
 ReactDOM.render(
   <Game />,
   document.getElementById('root')
