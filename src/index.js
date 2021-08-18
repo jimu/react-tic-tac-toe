@@ -4,18 +4,6 @@ import './index.css';
 
 ///////////////////////////////////////////////////
 // renders one square
-class Square0 extends React.Component {
-
-  render() {
-    return (
-      <button
-        className="square"
-        onClick={() => this.props.onClick()}>
-      {this.props.value}
-      </button>
-    );
-  }
-}
 
 function CheckWinner(squares) {
 
@@ -58,49 +46,17 @@ function Square(props) {
 // renders 9 Squares
 class Board extends React.Component {
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      squares: Array(9).fill(null),
-      currentToken: 'X',
-      winner: null,
-    };
-
-  }
-
-  handleClick(i) {
-
-    if (this.state.winner === null) {
-      console.log("hi");
-      const squares = this.state.squares.slice();
-      squares[i] = this.state.currentToken;
-
-      const token = this.state.currentToken === 'X' ? 'O' : 'X';
-
-      const winner = CheckWinner(squares);
-
-      this.setState({currentToken: token, squares: squares, winner: winner});
-    }
-  }
-
   renderSquare(i) {
     return <Square
-      value={this.state.squares[i]}
-      onClick={() => this.handleClick(i)}
+      value={this.props.squares[i]}
+      onClick={() => this.props.onClick(i)}
     />;
   }
 
   render() {
 
-    const winner = this.state.winner;
-    const status =
-      winner === null ?  'Next player: ' + this.state.currentToken :
-      winner === 0    ?  'Stalemate' :
-      'Winner: ' + winner;
-      
     return (
       <div>
-        <div className="status">{status}</div>
         <div className="board-row">
           {this.renderSquare(0)}
           {this.renderSquare(1)}
@@ -128,19 +84,100 @@ class Board extends React.Component {
 ///////////////////////////////////////////////////
 // renders Board and placeholder stuff
 class Game extends React.Component {
+
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      history: [{
+        squares: Array(9).fill(null),
+        currentToken: 'X',
+        winner: null,
+        }],
+      stepNumber: 0,
+    };
+  }
+
+
+  jumpTo(step) {
+    console.log("Step: " + step);
+    this.setState({stepNumber: step});
+  }
+
+
+
+
   render() {
+    const history = this.state.history;
+    const stepNumber = this.state.stepNumber;
+    const current = history[stepNumber];
+
+
+    const winner = current.winner;
+    const status =
+      winner === null ?  'Next player: ' + current.currentToken :
+      winner === 0    ?  'Stalemate' :
+      'Winner: ' + winner;
+
+    // step is the history record
+    // move is the turn number (0...n)
+    const moves = history.map((step, move) => {
+      const x = step.cell % 3 + 1;
+      const y = Math.floor(step.cell / 3) + 1;
+      const isCurrent = move == stepNumber;
+      var desc = move ?
+        'Go to move #' + move + "(" + y + "," + x + ')':
+        'Go to game start';
+
+      if (isCurrent) {
+        desc = <b>{desc}</b>;
+      }
+      return <li key={move}><button onClick={() => this.jumpTo(move)}>{desc}</button></li>;
+    });
+
     return (
       <div className="game">
         <div className="game-board">
-          <Board />
+          <Board
+            squares={current.squares}
+            onClick={(i) => this.handleClick(i)}
+          />
         </div>
         <div className="game-info">
-          <div>{/* status */}</div>
-          <ol>{/* TODO */}</ol>
+          <div>{status}</div>
+          <ol>{moves}</ol>
         </div>
       </div>
     );
   }
+
+  handleClick(i) {
+
+    console.log("Click(" + i + ")");
+
+    const history = this.state.history.slice(0, this.state.stepNumber + 1);
+    const current = history[history.length - 1];
+
+    if (current.winner === null) {
+      const squares = current.squares.slice();
+      squares[i] = current.currentToken;
+
+      const token = current.currentToken === 'X' ? 'O' : 'X';
+
+      const winner = CheckWinner(squares);
+
+      this.setState({
+        history: history.concat([{
+          squares: squares,
+          winner: winner,
+          currentToken: token,
+          cell: i,
+        }]),
+        stepNumber: history.length,
+      });
+    }
+  }
+
 }
 
 // ========================================
