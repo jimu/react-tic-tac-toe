@@ -17,6 +17,34 @@ class Square0 extends React.Component {
   }
 }
 
+function CheckWinner(squares) {
+
+  const wins = [
+    [0,1,2],
+    [3,4,5],
+    [6,7,8],
+    [0,3,6],
+    [1,4,7],
+    [2,5,8],
+    [0,4,8],
+    [2,4,6],
+  ];
+
+  for (let i = 0; i < wins.length; ++i) {
+    const [a,b,c] = wins[i];
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return squares[a];
+    }
+  }
+
+  for (let i = 0; i < squares.length; ++i) {
+    if (squares[i] == null)
+      return null;
+  }
+
+  return 0;
+}
+
 
 function Square(props) {
   return (
@@ -35,17 +63,24 @@ class Board extends React.Component {
     this.state = {
       squares: Array(9).fill(null),
       currentToken: 'X',
+      winner: null,
     };
 
   }
 
   handleClick(i) {
-    console.log("hi");
-    const squares = this.state.squares.slice();
-    squares[i] = this.state.currentToken;
 
-    const token = this.state.currentToken === 'X' ? 'O' : 'X';
-    this.setState({currentToken: token, squares: squares});
+    if (this.state.winner === null) {
+      console.log("hi");
+      const squares = this.state.squares.slice();
+      squares[i] = this.state.currentToken;
+
+      const token = this.state.currentToken === 'X' ? 'O' : 'X';
+
+      const winner = CheckWinner(squares);
+
+      this.setState({currentToken: token, squares: squares, winner: winner});
+    }
   }
 
   renderSquare(i) {
@@ -56,8 +91,13 @@ class Board extends React.Component {
   }
 
   render() {
-    const status = 'Next player: ' + this.state.currentToken;
 
+    const winner = this.state.winner;
+    const status =
+      winner === null ?  'Next player: ' + this.state.currentToken :
+      winner === 0    ?  'Stalemate' :
+      'Winner: ' + winner;
+      
     return (
       <div>
         <div className="status">{status}</div>
